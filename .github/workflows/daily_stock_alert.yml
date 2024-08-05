@@ -1,0 +1,36 @@
+name: Run Notebook
+
+on:
+  schedule:
+    - cron: '0 8 * * *'  # Runs daily at 8 AM UTC
+  workflow_dispatch: # Allows manual triggering
+
+jobs:
+  run-notebook:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'  # or the version you need
+
+      - name: Install dependencies
+        run: |
+          pip install notebook
+          pip install yfinance pandas  # Add any other dependencies
+
+      - name: Run Jupyter Notebook
+        run: |
+          jupyter nbconvert --to notebook --execute Stock_Alert.ipynb --output=result.ipynb
+        
+      - name: Upload result notebook
+        uses: actions/upload-artifact@v3
+        with:
+          name: result-notebook
+          path: result.ipynb
+
+
