@@ -1,9 +1,10 @@
 import yfinance as yf
 import pandas as pd
-from alpaca_trade_api.rest import REST, TimeFrame
+from alpaca_trade_api.rest import REST
 from ta.momentum import RSIIndicator
+import numpy as np
 
-# Alpaca API credentials
+# Alpaca API credentials 
 ALPACA_API_KEY = 'PKA2HSAM02FMFG60K4BS'
 ALPACA_SECRET_KEY = 'wqwJGiUWdL7Old1ByKvIllHvwxXvH1xtEMEdzAiy'
 BASE_URL = 'https://paper-api.alpaca.markets'
@@ -34,12 +35,21 @@ def check_trading_signals_and_execute(stock_list, window=90, threshold=0.01, sto
     for stock in stock_list:
         try:
             # Загрузка исторических данных
-            data = yf.download(stock, period='1y', interval='1d', auto_adjust=False)
+            data = yf.download(stock, period='1y', interval='1d', auto_adjust=False, group_by='ticker')
 
             if data.empty or data.isnull().values.any():
                 print(f"No or invalid data for {stock}. Skipping...")
                 failed_tickers.append(stock)
                 continue
+
+            # Если данные имеют многоуровневые колонки — преобразуем их
+            if isinstance(data.columns, pd.MultiIndex):
+                data.columns = data.columns.get_level_values(1)
+
+            # Диагностика: проверка формы данных после преобразования
+            print(f"\n--- Diagnosing {stock} ---")
+            for col in data.columns:
+                print(f"Column: {col}, Shape: {data[col].shape}")
 
             # Расчет уровней поддержки и сопротивления
             data = calculate_levels(data, window)
@@ -50,12 +60,12 @@ def check_trading_signals_and_execute(stock_list, window=90, threshold=0.01, sto
             data['RSI'] = rsi_indicator.rsi()
 
             # Получение последних значений
-            last_close = close_prices.iloc[-1]
-            last_support = data['Support'].iloc[-1]
-            last_resistance = data['Resistance'].iloc[-1]
-            last_rsi = data['RSI'].iloc[-1]
-            volume_avg = data['Volume'].rolling(20).mean().iloc[-1]
-            last_volume = data['Volume'].iloc[-1]
+            last_close = float(close_prices.iloc[-1])
+            last_support = float(data['Support'].iloc[-1])
+            last_resistance = float(data['Resistance'].iloc[-1])
+            last_rsi = float(data['RSI'].iloc[-1])
+            volume_avg = float(data['Volume'].rolling(20).mean().iloc[-1])
+            last_volume = float(data['Volume'].iloc[-1])
 
             # BUY signal
             if (last_close <= last_support * (1 + threshold)) and (last_rsi > 30) and (last_volume > volume_avg):
@@ -91,7 +101,7 @@ def check_trading_signals_and_execute(stock_list, window=90, threshold=0.01, sto
                     print(f"STOP LOSS Triggered for {stock} at {last_close}")
                     api.submit_order(
                         symbol=stock,
-                        qty=1,
+                          qty=1,
                         side='sell',
                         type='market',
                         time_in_force='gtc'
@@ -121,7 +131,8 @@ def check_trading_signals_and_execute(stock_list, window=90, threshold=0.01, sto
     return pd.DataFrame(result), failed_tickers
 
 # Список акций для проверки
-stock_list = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA']
+stock_list = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'JNJ', 'V', 'PG', 'JPM',
+              'UNH', 'MA', 'HD', 'BAC', 'DIS', 'VZ', 'NFLX', 'ADBE', 'CRM', 'INTC', 'PFE']
 
 # Запуск проверки торговых сигналов и выполнения сделок
 results, failed_tickers = check_trading_signals_and_execute(stock_list)
