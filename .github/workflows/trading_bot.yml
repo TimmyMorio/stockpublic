@@ -1,9 +1,9 @@
-name: Trading Bot
+name: Run Trading Bot Every 3 Hours
 
 on:
   schedule:
-    - cron: '0 */3 * * *'  # Запуск каждые 3 часа
-  workflow_dispatch:  # Позволяет вручную запускать workflow
+    - cron: '0 */3 * * *'  # Запуск каждые 3 часа (UTC)
+  workflow_dispatch:        # Возможность запустить вручную
 
 jobs:
   run-bot:
@@ -16,7 +16,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.11'
+        python-version: '3.9'  # Укажите нужную версию Python
 
     - name: Install dependencies
       run: |
@@ -24,8 +24,5 @@ jobs:
         pip install -r requirements.txt
 
     - name: Run trading bot
-      env:
-        ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
-        ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
       run: |
-        python trading_bot.py
+        python trading_bot
