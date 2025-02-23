@@ -20,7 +20,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install yfinance pandas ta smtplib  # Добавь все нужные библиотеки
+          pip install yfinance pandas ta  # Убрали smtplib
 
       - name: Run Python Script
         run: |
