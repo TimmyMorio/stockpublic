@@ -12,6 +12,9 @@ BASE_URL = 'https://paper-api.alpaca.markets'
 # Инициализация клиента Alpaca
 api = REST(ALPACA_API_KEY, ALPACA_SECRET_KEY, BASE_URL, api_version='v2')
 
+# Фиксированная сумма на каждую сделку
+fixed_amount = 20  
+
 # Функция для расчета уровней поддержки и сопротивления
 def calculate_levels(data, window=90):
     data['Support'] = data['Low'].rolling(window=window).min()
@@ -69,24 +72,28 @@ def check_trading_signals_and_execute(stock_list, window=90, threshold=0.01, sto
 
             # BUY signal
             if (last_close <= last_support * (1 + threshold)) and (last_rsi > 30) and (last_volume > volume_avg):
-                result.append({'Stock': stock, 'Type': 'BUY', 'Close': last_close, 'Support': last_support})
-                print(f"BUY Signal for {stock} at {last_close}")
+                qty = round(fixed_amount / last_close, 4)  # Дробное количество акций
+                result.append({'Stock': stock, 'Type': 'BUY', 'Close': last_close, 'Qty': qty})
+                print(f"BUY Signal for {stock} at {last_close}, Qty: {qty}")
                 api.submit_order(
                     symbol=stock,
-                    qty=1,
+                    notional=fixed_amount,  # Покупаем на $20
                     side='buy',
                     type='market',
                     time_in_force='gtc'
                 )
 
-            # SELL signal
+
+            # SELL signal — продаем все купленные акции
             if pd.notnull(last_resistance) and (last_close >= last_resistance * (1 - threshold)) and (last_rsi < 70):
                 if has_position(stock):
-                    result.append({'Stock': stock, 'Type': 'SELL', 'Close': last_close, 'Resistance': last_resistance})
-                    print(f"SELL Signal for {stock} at {last_close}")
+                    position = api.get_position(stock)
+                    qty = int(float(position.qty))  # Продаем всё, что есть
+                    result.append({'Stock': stock, 'Type': 'SELL', 'Close': last_close, 'Qty': qty})
+                    print(f"SELL Signal for {stock} at {last_close}, Qty: {qty}")
                     api.submit_order(
                         symbol=stock,
-                        qty=1,
+                        qty=qty,
                         side='sell',
                         type='market',
                         time_in_force='gtc'
@@ -94,29 +101,31 @@ def check_trading_signals_and_execute(stock_list, window=90, threshold=0.01, sto
                 else:
                     print(f"Skipping SELL for {stock} — No position held.")
 
-            # STOP LOSS signal
+            # STOP LOSS signal — продаем все, если цена упала ниже стоп-лосса
             if pd.notnull(last_support) and (last_close <= last_support * (1 - stop_loss)):
                 if has_position(stock):
-                    result.append({'Stock': stock, 'Type': 'STOP LOSS', 'Close': last_close, 'Support': last_support})
-                    print(f"STOP LOSS Triggered for {stock} at {last_close}")
+                    position = api.get_position(stock)
+                    qty = int(float(position.qty))  # Продаем всё
+                    result.append({'Stock': stock, 'Type': 'STOP LOSS', 'Close': last_close, 'Qty': qty})
+                    print(f"STOP LOSS Triggered for {stock} at {last_close}, Qty: {qty}")
                     api.submit_order(
                         symbol=stock,
-                          qty=1,
+                        qty=qty,
                         side='sell',
                         type='market',
                         time_in_force='gtc'
                     )
-                else:
-                    print(f"Skipping STOP LOSS for {stock} — No position held.")
 
-            # TAKE PROFIT signal
+            # TAKE PROFIT signal — продаем всё, если цена выросла на take_profit
             if pd.notnull(last_support) and (last_close >= last_support * (1 + take_profit)):
                 if has_position(stock):
-                    result.append({'Stock': stock, 'Type': 'TAKE PROFIT', 'Close': last_close, 'Support': last_support})
-                    print(f"TAKE PROFIT Triggered for {stock} at {last_close}")
+                    position = api.get_position(stock)
+                    qty = int(float(position.qty))  # Продаем всё
+                    result.append({'Stock': stock, 'Type': 'TAKE PROFIT', 'Close': last_close, 'Qty': qty})
+                    print(f"TAKE PROFIT Triggered for {stock} at {last_close}, Qty: {qty}")
                     api.submit_order(
                         symbol=stock,
-                        qty=1,
+                        qty=qty,
                         side='sell',
                         type='market',
                         time_in_force='gtc'
