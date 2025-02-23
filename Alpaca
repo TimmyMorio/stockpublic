@@ -80,7 +80,7 @@ def check_trading_signals_and_execute(stock_list, window=90, threshold=0.01, sto
                     notional=fixed_amount,  # Покупаем на $20
                     side='buy',
                     type='market',
-                    time_in_force='gtc'
+                    time_in_force='day'
                 )
 
 
