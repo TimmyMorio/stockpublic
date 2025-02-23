@@ -30,6 +30,11 @@ def has_position(symbol):
     except:
         return False
 
+# Проверка на наличие открытых ордеров
+def has_open_order(symbol):
+    open_orders = api.list_orders(status='open', symbols=[symbol])
+    return len(open_orders) > 0
+
 # Функция для проверки торговых сигналов и выполнения сделок
 def check_trading_signals_and_execute(stock_list, window=90, threshold=0.01, stop_loss=0.07, take_profit=0.25):
     result = []
@@ -72,21 +77,23 @@ def check_trading_signals_and_execute(stock_list, window=90, threshold=0.01, sto
 
             # BUY signal
             if (last_close <= last_support * (1 + threshold)) and (last_rsi > 30) and (last_volume > volume_avg):
-                qty = round(fixed_amount / last_close, 4)  # Дробное количество акций
-                result.append({'Stock': stock, 'Type': 'BUY', 'Close': last_close, 'Qty': qty})
-                print(f"BUY Signal for {stock} at {last_close}, Qty: {qty}")
-                api.submit_order(
-                    symbol=stock,
-                    notional=fixed_amount,  # Покупаем на $20
-                    side='buy',
-                    type='market',
-                    time_in_force='day'
-                )
-
+                if not has_position(stock) and not has_open_order(stock):  # Проверка позиции и открытого ордера
+                    qty = round(fixed_amount / last_close, 4)  # Дробное количество акций
+                    result.append({'Stock': stock, 'Type': 'BUY', 'Close': last_close, 'Qty': qty})
+                    print(f"BUY Signal for {stock} at {last_close}, Qty: {qty}")
+                    api.submit_order(
+                        symbol=stock,
+                        notional=fixed_amount,  # Покупаем на $20
+                        side='buy',
+                        type='market',
+                        time_in_force='day'
+                    )
+                else:
+                    print(f"Skipping BUY for {stock} — Position held or order pending.")
 
             # SELL signal — продаем все купленные акции
             if pd.notnull(last_resistance) and (last_close >= last_resistance * (1 - threshold)) and (last_rsi < 70):
-                if has_position(stock):
+                if has_position(stock) and not has_open_order(stock):
                     position = api.get_position(stock)
                     qty = int(float(position.qty))  # Продаем всё, что есть
                     result.append({'Stock': stock, 'Type': 'SELL', 'Close': last_close, 'Qty': qty})
@@ -99,11 +106,11 @@ def check_trading_signals_and_execute(stock_list, window=90, threshold=0.01, sto
                         time_in_force='gtc'
                     )
                 else:
-                    print(f"Skipping SELL for {stock} — No position held.")
+                    print(f"Skipping SELL for {stock} — No position held or order pending.")
 
             # STOP LOSS signal — продаем все, если цена упала ниже стоп-лосса
             if pd.notnull(last_support) and (last_close <= last_support * (1 - stop_loss)):
-                if has_position(stock):
+                if has_position(stock) and not has_open_order(stock):
                     position = api.get_position(stock)
                     qty = int(float(position.qty))  # Продаем всё
                     result.append({'Stock': stock, 'Type': 'STOP LOSS', 'Close': last_close, 'Qty': qty})
@@ -115,10 +122,12 @@ def check_trading_signals_and_execute(stock_list, window=90, threshold=0.01, sto
                         type='market',
                         time_in_force='gtc'
                     )
+                else:
+                    print(f"Skipping TAKE PROFIT for {stock} — No position held or order pending.")
 
             # TAKE PROFIT signal — продаем всё, если цена выросла на take_profit
             if pd.notnull(last_support) and (last_close >= last_support * (1 + take_profit)):
-                if has_position(stock):
+                if has_position(stock) and not has_open_order(stock):
                     position = api.get_position(stock)
                     qty = int(float(position.qty))  # Продаем всё
                     result.append({'Stock': stock, 'Type': 'TAKE PROFIT', 'Close': last_close, 'Qty': qty})
@@ -131,7 +140,7 @@ def check_trading_signals_and_execute(stock_list, window=90, threshold=0.01, sto
                         time_in_force='gtc'
                     )
                 else:
-                    print(f"Skipping TAKE PROFIT for {stock} — No position held.")
+                    print(f"Skipping TAKE PROFIT for {stock} — No position held or order pending.")
 
         except Exception as e:
             print(f"Error for {stock}: {e}")
