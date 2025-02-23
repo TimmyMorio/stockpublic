@@ -6,7 +6,7 @@ on:
   workflow_dispatch: # Allows manual triggering
 
 jobs:
-  run-notebook:
+  run-script:
     runs-on: ubuntu-latest
 
     steps:
@@ -16,21 +16,18 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.8'  # or the version you need
+          python-version: '3.8'  # или нужная тебе версия
 
       - name: Install dependencies
         run: |
-          pip install notebook
-          pip install yfinance pandas  # Add any other dependencies
+          pip install yfinance pandas ta smtplib  # Добавь все нужные библиотеки
 
-      - name: Run Jupyter Notebook
+      - name: Run Python Script
         run: |
-          jupyter nbconvert --to notebook --execute Stock_Alert.py --output=result.ipynb
-        
-      - name: Upload result notebook
+          python Stock_Alert.py
+
+      - name: Upload Logs (если нужны)
         uses: actions/upload-artifact@v4
         with:
-          name: result-notebook
-          path: result.ipynb
-
-
+          name: log-files
+          path: ./  # Или путь к логам, если они есть
