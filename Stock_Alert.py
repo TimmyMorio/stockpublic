@@ -1,5 +1,3 @@
-!pip install yfinance ta
-
 import yfinance as yf
 import pandas as pd
 import smtplib
