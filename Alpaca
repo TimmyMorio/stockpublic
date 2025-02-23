@@ -140,8 +140,40 @@ def check_trading_signals_and_execute(stock_list, window=90, threshold=0.01, sto
     return pd.DataFrame(result), failed_tickers
 
 # Список акций для проверки
-stock_list = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'JNJ', 'V', 'PG', 'JPM',
-              'UNH', 'MA', 'HD', 'BAC', 'DIS', 'VZ', 'NFLX', 'ADBE', 'CRM', 'INTC', 'PFE']
+stock_list = [
+    'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'JNJ', 'V', 'PG', 'JPM',
+    'UNH', 'MA', 'HD', 'BAC', 'DIS', 'VZ', 'NFLX', 'ADBE', 'CRM', 'INTC', 'PFE',
+    'KO', 'PEP', 'CSCO', 'XOM', 'T', 'MRK', 'WMT', 'BA', 'MCD', 'NKE', 'IBM',
+    'GE', 'ORCL', 'ABT', 'CVX', 'MDT', 'HON', 'ACN', 'AVGO', 'QCOM', 'TXN',
+    'LLY', 'DHR', 'LIN', 'BMY', 'PM', 'MMM', 'AMGN', 'AMT', 'SPGI', 'NEE',
+    'LOW', 'MS', 'GS', 'NOW', 'INTU', 'BLK', 'RTX', 'SCHW', 'TMO', 'UNP',
+    'AXP', 'ISRG', 'PLD', 'BKNG', 'ADP', 'ZTS', 'MDLZ', 'SYK', 'COST', 'LMT',
+    'USB', 'GILD', 'CB', 'C', 'DE', 'PYPL', 'UPS', 'TMUS', 'AMAT',
+    'CVS', 'CI', 'TGT', 'BDX', 'MO', 'DUK', 'SO', 'CCI', 'NSC', 'CL', 'GM',
+    'MMM', 'F', 'HUM', 'CAT', 'EL', 'WM', 'PNC', 'COP', 'MMC', 'TJX', 'SHW',
+    'APD', 'ICE', 'GS', 'SPG', 'EW', 'ITW', 'D', 'SRE', 'ETN', 'FIS',
+    'ADSK', 'EMR', 'HCA', 'MCO', 'AON', 'KLAC', 'ADP', 'VRTX', 'MPC', 'PSA',
+    'BK', 'AEP', 'ADI', 'ECL', 'CTSH', 'ROP', 'NOC', 'EXC', 'PGR', 'MSCI',
+    'SLB', 'ILMN', 'APTV', 'CDNS', 'MNST', 'EBAY', 'SNPS', 'ORLY',
+    'MAR', 'KMB', 'AFL', 'WBA', 'LRCX', 'IDXX', 'TRV', 'STZ', 'CTAS', 'AZO',
+    'MCHP', 'PAYX', 'WELL', 'SYY', 'ALL', 'PRU', 'CMG', 'TEL', 'HPQ', 'SPGI',
+    'FTNT', 'DLR', 'VLO', 'RMD', 'WEC', 'EOG', 'PPG', 'NEM', 'ES', 'PEG',
+    'ED', 'XEL', 'AEE', 'DTE', 'CMS', 'WMB', 'OKE', 'KMI', 'ET', 'MPLX', 'EPD',
+    'PAA', 'ENB', 'TRP', 'KHC', 'GIS', 'K', 'SJM', 'HSY', 'CPB', 'CAG', 'MDLZ',
+    'HRL', 'MKC', 'TSN', 'LVS', 'WYNN', 'MGM', 'HST', 'MAR', 'HLT', 'RCL',
+    'NCLH', 'CCL', 'AAL', 'DAL', 'UAL', 'LUV', 'ALGT', 'SKYW', 'CPA', 'CNI',
+    'CP', 'UNP', 'CSX', 'NSC', 'SPY', 'VOO', 'IVV', 'VTI', 'QQQ', 'DIA', 'IWM',
+    'IJH', 'IJR', 'AGG', 'LQD', 'HYG', 'SHY', 'IEF', 'TLT', 'BND', 'TIP', 'MUB',
+    'VWO', 'EFA', 'IEFA', 'EEM', 'ACWI', 'VXUS', 'VEU', 'VSS', 'SCZ', 'GWX',
+    'DGS', 'DEM', 'DVY', 'VYM', 'HDV', 'SDY', 'VIG', 'SCHD', 'SPHD', 'SPYD',
+    'SPLV', 'USMV', 'MTUM', 'QUAL', 'VLUE', 'IWF', 'IWD', 'IWB', 'IWR', 'IWS',
+    'IWP', 'IWO', 'IWN', 'IWV', 'IUSG', 'IUSV', 'IUSB', 'IAGG', 'SHV', 'SHY',
+    'IEI', 'IEF', 'TLT', 'GOVT', 'MBB', 'FLOT', 'SHYG', 'HYG', 'JNK', 'SJNK',
+    'EMB', 'VWOB', 'IGOV', 'BWX', 'LQD', 'VCIT', 'VCSH', 'VCLT', 'BKLN',
+    'SRLN', 'HYD', 'BAB', 'MUB', 'TFI', 'SHM', 'ITM', 'MLN', 'SUB', 'PZA',
+    'PZT', 'PVI', 'SHYD', 'HYMB', 'VTEB', 'BND', 'AGG', 'SCHZ', 'BIV', 'BSV',
+    'BLV', 'BNDX'
+]
 
 # Запуск проверки торговых сигналов и выполнения сделок
 results, failed_tickers = check_trading_signals_and_execute(stock_list)
