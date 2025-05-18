@@ -3,3 +3,5 @@ pandas
 alpaca-trade-api
 ta
 numpy
+six
+urllib3<2.0
