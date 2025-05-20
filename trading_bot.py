@@ -5,9 +5,9 @@ from ta.momentum import RSIIndicator
 import numpy as np
 
 # Alpaca API credentials 
-ALPACA_API_KEY = 'PKA2HSAM02FMFG60K4BS'
-ALPACA_SECRET_KEY = 'wqwJGiUWdL7Old1ByKvIllHvwxXvH1xtEMEdzAiy'
-BASE_URL = 'https://paper-api.alpaca.markets'
+ALPACA_API_KEY = 'PKX5F9TMALNB58HNNU59'
+ALPACA_SECRET_KEY = 'BbX1mN2QBQAydduIX0lKXQthEscg4OmXkdISKsS6'
+BASE_URL = 'https://paper-api.alpaca.markets/v2'
 
 # Инициализация клиента Alpaca
 api = REST(ALPACA_API_KEY, ALPACA_SECRET_KEY, BASE_URL, api_version='v2')
