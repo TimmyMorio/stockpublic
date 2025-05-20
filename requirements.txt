@@ -4,4 +4,4 @@ alpaca-trade-api
 ta
 numpy
 six
-urllib3<2.0
+urllib3==1.26.6
