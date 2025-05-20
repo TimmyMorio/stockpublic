@@ -3,5 +3,5 @@ pandas
 alpaca-trade-api
 ta
 numpy
-six
+six>=1.15.0
 urllib3==1.26.6
